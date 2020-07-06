@@ -1,15 +1,35 @@
-apiVersion: tekton.dev/v1beta1
-kind: PipelineRun
-metadata:
-  generateName: sample-
-spec:
-  pipelineSpec:
-    tasks:
-      - name: hello-commit
-        taskSpec:
-          steps:
-            - name: hello
-              image: ubuntu
-              script: |
-                #!/usr/bin/env bash
-                echo $GIT_REVISION
+resources:
+  - name: source
+    type: git
+params:
+  - name: gitrevision
+    type: string
+  - name: gitrepositoryurl
+    type: string
+tasks:
+  - name: list-files
+    resources:
+      inputs:
+        - name: source
+          resource: source
+    params:
+      - name: gitrevision
+        value: $(params.gitrevision)
+      - name: gitrepositoryurl
+        value: $(params.gitrepositoryurl)
+    taskSpec:
+      params:
+        - name: gitrevision
+          type: string
+        - name: gitrepositoryurl
+          type: string
+      resources:
+        inputs:
+          - name: source
+            type: git
+      steps:
+        - name: ls
+          image: ubuntu
+          script: |
+            #!/usr/bin/env bash
+            ls -al $(inputs.resources.source.path)
